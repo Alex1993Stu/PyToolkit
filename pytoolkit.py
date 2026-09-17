@@ -1,9 +1,10 @@
 # MARK: - PyToolkit.py
 
-import argparse
+import argparse, io
 from collections import Counter, defaultdict
+from contextlib import redirect_stdout
 
-
+buffer = " "
 def build_parser():
     parser = argparse.ArgumentParser(description="PyToolkit text utilities")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -11,6 +12,20 @@ def build_parser():
     analyze.add_argument("-f", "--file", required=True, help="Input file")
     analyze.add_argument("-v", "--verbose", action="store_true")
     return parser
+
+def safe_read(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Error: {path} not found")
+        return ""
+
+def capture_report(path):
+    buffer = io.StringIO()
+    with redirect_stdout(buffer):
+        print(f"Analyzing {path}")  
+    return buffer.getvalue()
 
 def word_stats(words):
     counter = Counter(w.lower().strip(".,!?") for w in words if w)
@@ -20,8 +35,7 @@ def word_stats(words):
     return counter, by_prefix
 
 def analyze_file(path, verbose=False):
-    with open(path, encoding="utf-8") as f:
-        text = f.read()
+    text = safe_read(path)
     words = text.split()
     counter, by_prefix = word_stats(words)
     print(f"Words: {len(words)}")
@@ -33,7 +47,13 @@ def analyze_file(path, verbose=False):
 def main():
     args = build_parser().parse_args()
     if args.command == "analyze":
+        report = capture_report(args.file)
+        '''Work in progress: The report is captured but not printed. Uncomment the following lines to see the captured report.'''
+        #print("Captured report:")
+        #print(report)
         analyze_file(args.file, args.verbose)
+        
+
 
 if __name__ == "__main__":
     main()
