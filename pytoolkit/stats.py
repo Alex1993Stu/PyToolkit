@@ -16,8 +16,14 @@ def cached_word_count(text):
     return len(text.split())
 
 @log_call
-def word_stats(words):
-    counter = Counter(w.lower().strip(".,!?") for w in words if w)
+def word_stats(words, plugin=None):
+    normalized_words = [w.lower().strip(".,!?") for w in words if w]
+    if plugin:
+        normalized_text = " ".join(normalized_words)
+        normalized_text = plugin(normalized_text)
+        normalized_words = normalized_text.split()
+
+    counter = Counter(normalized_words)
     by_prefix = defaultdict(list)
     for w in counter:
         by_prefix[w[0]].append(w)
