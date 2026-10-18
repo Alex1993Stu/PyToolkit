@@ -2,7 +2,7 @@
 
 import argparse, io, importlib
 
-from .stats import log_call, cached_word_count, word_stats
+from .stats import log_call, word_stats
 from contextlib import redirect_stdout
 from functools import partial
 
@@ -16,6 +16,8 @@ def build_parser():
     analyze.add_argument("-p", "--plugin", help="Plugin to apply to the text")
     return parser
 
+###LEGACY###
+'''
 @log_call
 def safe_read(path):
     try:
@@ -24,12 +26,13 @@ def safe_read(path):
     except FileNotFoundError:
         print(f"\nError: {path} not found")
         return ""
+'''
 
 @log_call
 def read_lines(path):
-    with open(path, encoding="utf-8") as f:
-        for line in f:
-            yield line.rstrip("\n")
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                yield line.rstrip("\n")
 
 @log_call
 def count_lines(path):
@@ -49,18 +52,21 @@ def capture_report(path):
 
 @log_call
 def analyze_file(path, verbose=False, plugin=None):
-    text = safe_read(path)
-    words = text.split()
-    line_count = count_lines(path)
     apply_plugin = None
-
     if plugin:
         apply_plugin = load_plugin(plugin)
-    counter, by_prefix = word_stats(words, apply_plugin)
-    output = f"\nWords: {cached_word_count(text)}"
+    try:
+        counter, by_prefix, word_count, line_count, character_count = word_stats(
+            read_lines(path),
+            apply_plugin
+        )
+    except FileNotFoundError:
+        print(f"Error: {path} not found")
+        return
+    output = f"\nWords: {word_count}"
 
     if verbose:
-        output += f"\nCharacters: {len(text)}"
+        output += f"\nCharacters: {character_count}"
         output += f"\nLines: {line_count}"
         output += f"\nMost common words: {counter.most_common(5)}"
         output += f"\nBy prefix: {by_prefix}"
