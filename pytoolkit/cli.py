@@ -26,6 +26,16 @@ def safe_read(path):
         return ""
 
 @log_call
+def read_lines(path):
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            yield line.rstrip("\n")
+
+@log_call
+def count_lines(path):
+    return sum(1 for _ in read_lines(path))
+
+@log_call
 def load_plugin(name):
     module = importlib.import_module(f"pytoolkit.plugins.{name}")
     return module.apply
@@ -41,6 +51,7 @@ def capture_report(path):
 def analyze_file(path, verbose=False, plugin=None):
     text = safe_read(path)
     words = text.split()
+    line_count = count_lines(path)
     apply_plugin = None
 
     if plugin:
@@ -50,6 +61,7 @@ def analyze_file(path, verbose=False, plugin=None):
 
     if verbose:
         output += f"\nCharacters: {len(text)}"
+        output += f"\nLines: {line_count}"
         output += f"\nMost common words: {counter.most_common(5)}"
         output += f"\nBy prefix: {by_prefix}"
     print(output)
