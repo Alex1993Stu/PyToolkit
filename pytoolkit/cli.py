@@ -16,18 +16,6 @@ def build_parser():
     analyze.add_argument("-p", "--plugin", help="Plugin to apply to the text")
     return parser
 
-###LEGACY###
-'''
-@log_call
-def safe_read(path):
-    try:
-        with open(path, encoding="utf-8") as f:
-            return f.read()
-    except FileNotFoundError:
-        print(f"\nError: {path} not found")
-        return ""
-'''
-
 @log_call
 def read_lines(path):
         with open(path, encoding="utf-8") as f:
@@ -56,7 +44,7 @@ def analyze_file(path, verbose=False, plugin=None):
     if plugin:
         apply_plugin = load_plugin(plugin)
     try:
-        counter, by_prefix, word_count, line_count, character_count = word_stats(
+        counter, by_prefix, pairs, word_count, line_count, character_count = word_stats(
             read_lines(path),
             apply_plugin
         )
@@ -70,6 +58,7 @@ def analyze_file(path, verbose=False, plugin=None):
         output += f"\nLines: {line_count}"
         output += f"\nMost common words: {counter.most_common(5)}"
         output += f"\nBy prefix: {by_prefix}"
+        output += f"\nWord pairs: {pairs}"
     print(output)
 
 _analyze_upper = partial(analyze_file, verbose=False, plugin="uppercase")
@@ -91,8 +80,6 @@ def main():
         ''' Work in progress '''
         report = capture_report(args.file)
         print("\nCaptured report:", report)
-        ''' Previous funtion call '''
-        #analyze_file(args.file, args.verbose)
 
 if __name__ == "__main__":
     main()
